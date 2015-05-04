@@ -5,16 +5,16 @@
  */
 
 (function (root, factory) {
-    if (typeof module !== 'undefined' && module.exports) {
-        // CommonJS
-        module.exports = factory(require('angular'));
-    } else if (typeof define === 'function' && define.amd) {
-        // AMD
-        define(['angular'], factory);
-    } else {
-        // Global Variables
-        factory(root.angular);
-    }
+	if (typeof module !== 'undefined' && module.exports) {
+		// CommonJS
+		module.exports = factory(require('angular'));
+	} else if (typeof define === 'function' && define.amd) {
+		// AMD
+		define(['angular'], factory);
+	} else {
+		// Global Variables
+		factory(root.angular);
+	}
 }(this, function (angular, undefined) {
 	'use strict';
 
@@ -27,6 +27,8 @@
 	var animationEndEvent = 'animationend webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend';
 	var forceBodyReload = false;
 	var scopes = {};
+	var openIdStack = [];
+	var keydownIsBound = false;
 
 	m.provider('ngDialog', function () {
 		var defaults = this.defaults = {
@@ -137,6 +139,11 @@
 						if (scopes[id]) {
 							delete scopes[id];
 						}
+						openIdStack.splice(openIdStack.indexOf(id), 1);
+						if ((!openIdStack.length)) {
+							$body.unbind('keydown', privateMethods.onDocumentKeydown);
+							keydownIsBound = false;
+						}
 					},
 
 					closeDialog: function ($dialog, value) {
@@ -188,6 +195,7 @@
 						var options = angular.copy(defaults);
 						var localID = ++globalID;
 						var dialogID = 'ngdialog' + localID;
+						openIdStack.push(dialogID);
 
 						opts = opts || {};
 						angular.extend(options, opts);
@@ -281,8 +289,9 @@
 								}
 							});
 
-							if (options.closeByEscape) {
+							if (!keydownIsBound) {
 								$body.bind('keydown', privateMethods.onDocumentKeydown);
+								keydownIsBound = true;
 							}
 
 							if (options.closeByNavigation) {
@@ -395,7 +404,13 @@
 						if ($dialog.length) {
 							privateMethods.closeDialog($dialog, value);
 						} else {
-							publicMethods.closeAll(value);
+							if (id === '$escape') {
+								var topDialogId = openIdStack[openIdStack.length-1];
+								$dialog = $el(document.getElementById(topDialogId));
+								if ($dialog.data('$ngDialogOptions').closeByEscape) {
+									privateMethods.closeDialog($dialog, value);
+								}
+							}
 						}
 
 						return publicMethods;

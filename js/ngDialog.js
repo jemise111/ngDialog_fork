@@ -266,6 +266,10 @@
 								if (preCloseCallback) {
 									$dialog.data('$ngDialogPreCloseCallback', preCloseCallback);
 								}
+
+								if (options.closeByEscape) {
+									$dialog.data('$ngDialogCloseByEscape', options.closeByEscape);
+								}
 							}
 
 							scope.closeThisDialog = function (value) {
@@ -288,8 +292,7 @@
 									$rootScope.$broadcast('ngDialog.opened', $dialog);
 								}
 							});
-
-							if (!keydownIsBound) {
+							if (options.closeByEscape && !keydownIsBound) {
 								$body.bind('keydown', privateMethods.onDocumentKeydown);
 								keydownIsBound = true;
 							}
@@ -407,7 +410,7 @@
 							if (id === '$escape') {
 								var topDialogId = openIdStack[openIdStack.length-1];
 								$dialog = $el(document.getElementById(topDialogId));
-								if ($dialog.data('$ngDialogOptions').closeByEscape) {
+								if ($dialog.data('$ngDialogCloseByEscape')) {
 									privateMethods.closeDialog($dialog, value);
 								}
 							}

@@ -266,10 +266,10 @@
 								if (preCloseCallback) {
 									$dialog.data('$ngDialogPreCloseCallback', preCloseCallback);
 								}
-
-								if (options.closeByEscape) {
-									$dialog.data('$ngDialogCloseByEscape', options.closeByEscape);
-								}
+							}
+							
+							if (options.closeByEscape) {
+								$dialog.data('$ngDialogCloseByEscape', options.closeByEscape);
 							}
 
 							scope.closeThisDialog = function (value) {
